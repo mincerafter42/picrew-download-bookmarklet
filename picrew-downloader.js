@@ -105,8 +105,6 @@ if (downloadEntireMaker) {
 		addFile(partDir);
 		const partStack=stack.createElement('stack');
 		rootStack.appendChild(partStack);
-		partStack.setAttribute('x',part.x);
-		partStack.setAttribute('y',part.y);
 		partStack.setAttribute('name',part.pNm);
 		for (const item of part.items) for (const colour of state.config.cpList[part.cpId]) {
 			if (state.commonImages[item.itmId]&&state.commonImages[item.itmId][layer[0]]&&state.commonImages[item.itmId][layer[0]][colour.cId]) {// skip if nonexistent
@@ -116,9 +114,13 @@ if (downloadEntireMaker) {
 				oraLayer.setAttribute('src',imageDir);
 				const local=localSettings[part.pId]
 				if (local.itmId==item.itmId&&local.cId==colour.cId) { //visible
-					oraLayer.setAttribute('x',local.xCnt);
-					oraLayer.setAttribute('y',local.yCnt);
-				} else oraLayer.setAttribute('visibility','hidden');
+					oraLayer.setAttribute('x',part.x+local.xCnt);
+					oraLayer.setAttribute('y',part.y+local.yCnt);
+				} else {
+					oraLayer.setAttribute('visibility','hidden');
+					oraLayer.setAttribute('x',part.x);
+					oraLayer.setAttribute('y',part.y);
+				}
 				await fetch(state.commonImages[item.itmId][layer[0]][colour.cId].url).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
 				progressBar.value++;
 			}
