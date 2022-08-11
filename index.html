@@ -9,7 +9,7 @@ Then run the bookmarklet on a <i>picrew.me/image_maker</i> or <i>picrew.me/secre
 <p>It is known the maximum file size my code can correctly generate is around 4 gibibytes, due to the structure of the ZIP format. I deem this to not be a problem.
 <h2>What?</h2>
 <p><a href=https://picrew.me>Picrew</a> is a popular platform for image makers: multi-layer images designed to be customizable.<br>
-These bookmarklets save Picrew image makers in the OpenRaster format, a cross-application layered image format. OpenRaster files can also be opened as ZIP archives.<br>
+These bookmarklets save Picrew image makers in the <a href=https://openraster.org>OpenRaster</a> format, a cross-application layered image format. OpenRaster files can also be opened as ZIP archives.<br>
 The generated OpenRaster files deviate from the specification thusly: They contain a <code>comment.txt</code>. I set <code>comment.txt</code> to the image makers' provided descriptions.
 <h2>Didn't you already make this?</h2>
 <p>Previously, I had created the Picrew downloader browser extension. The bookmarklet has such improvements as:
@@ -18,9 +18,11 @@ The generated OpenRaster files deviate from the specification thusly: They conta
 <li>Being an order of magnitude smaller (most of the original's size came from JSZip, of which I was not using most features)
 <li>Not needing me to go through manifest-upgrading or polyglotting or extension-store shenanigans
 </ul>
-<h2>Can I see the source code instead of the minified version?</h2>
-<p>Yep! Here's <a href=picrew-downloader.js>the source code</a>
+<h2>How can I report a problem?</h2>
+<p>You can <a href=https://mincerafter42.github.io/contact>contact me</a> or report it at <a href=https://github.com/mincerafter42/picrew-download-bookmarklet/>the source code on GitHub.</a>
+<h2>How can I tell if I have the latest version?</h2>
+<p>Check the version number at the end of the bookmarklet (after the <code>//</code>) and compare it to the version number of the same bookmarklet here.
 <h2>What's the license?</h2>
 <p>uhh "you can do whatever you want with this code" ok bye
 </main>
-<footer><a href=https://mincerafter42.github.io>Return to Viatrix's home page</a> <a href=https://github.com/mincerafter42/picrew-download-bookmarklet/>View on GitHub</a></footer>
+<footer><a href=https://mincerafter42.github.io>Return to Viatrix's home page</a></footer>
