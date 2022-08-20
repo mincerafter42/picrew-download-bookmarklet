@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.0
+/* Picrew downloader bookmarklet version 1.2
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -110,7 +110,8 @@ if (downloadEntireMaker) {
 			if (state.commonImages[item.itmId]&&state.commonImages[item.itmId][layer[0]]&&state.commonImages[item.itmId][layer[0]][colour.cId]) {// skip if nonexistent
 				const oraLayer = stack.createElement('layer');
 				partStack.appendChild(oraLayer);
-				const imageDir=partDir+item.itmId+colour.cd+'.png';
+				const fetchUrl=state.commonImages[item.itmId][layer[0]][colour.cId].url;
+				const imageDir=partDir+item.itmId+colour.cd+fetchUrl.split('/').pop(); // sometimes multiple colours available with the same rgb values
 				oraLayer.setAttribute('src',imageDir);
 				const local=localSettings[part.pId]
 				if (local.itmId==item.itmId&&local.cId==colour.cId) { //visible
@@ -121,7 +122,7 @@ if (downloadEntireMaker) {
 					oraLayer.setAttribute('x',part.x);
 					oraLayer.setAttribute('y',part.y);
 				}
-				await fetch(state.commonImages[item.itmId][layer[0]][colour.cId].url).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
+				await fetch(fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
 				progressBar.value++;
 			}
 		}
