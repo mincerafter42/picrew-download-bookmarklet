@@ -51,7 +51,7 @@ addFile('Thumbnails/');
 addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
 
 // thumbnail and mergedimage.png, taken from previous picrew downloader
-	const renderedImage = document.getElementById('my-canvas-object').firstElementChild.firstElementChild; // already rendered image (good for thumbnails & such)
+	const renderedImage = document.querySelector('canvas'); // already rendered image (good for thumbnails & such)
 	await fetch(renderedImage.toDataURL()).then(r=>r.arrayBuffer()).then(x=>addFile('mergedimage.png',x));
 	// going to create a smaller canvas for the required thumbnail
 	const canvasScale = 256/Math.max(state.config.w, state.config.h); // scaling factor of canvas to match required thumbnail size
@@ -66,7 +66,7 @@ addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
 	const image = stack.documentElement; // `image` element, root
 	image.setAttribute('w',state.config.w);
 	image.setAttribute('h',state.config.h);
-	image.setAttribute('version', '0.0.3'); // look i dunno if this is the right version but it's the version from the example in the ora spec
+	image.setAttribute('version', '0.0.6');
 	const rootStack = stack.createElement('stack');
 	image.appendChild(rootStack);
 
