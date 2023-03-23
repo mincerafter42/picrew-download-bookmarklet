@@ -8,7 +8,7 @@ don't compress anything, just store it. the only file that was compressed in the
 zip64? nah we're keeping things fittable in two SD cards
 */
 //setInt32 and setInt16, for positive numbers, function identically to setUint32 and setUint16
-if (location.hostname!='picrew.me'||!(location.pathname.startsWith('/image_maker/')||location.pathname.startsWith('/secret_image_maker/'))) alert('Not a Picrew image maker!');
+if (location.hostname!='picrew.me'||!(location.pathname.startsWith('/en/image_maker/')||location.pathname.startsWith('/en/secret_image_maker/')||location.pathname.startsWith('/ja/image_maker/')||location.pathname.startsWith('/ja/secret_image_maker/'))) alert('Not a Picrew image maker!');
 else void(async downloadCurrentState=>{
 
 const progressBar=document.createElement('progress');
