@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.2
+/* Picrew downloader bookmarklet version 1.4
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -8,7 +8,7 @@ don't compress anything, just store it. the only file that was compressed in the
 zip64? nah we're keeping things fittable in two SD cards
 */
 //setInt32 and setInt16, for positive numbers, function identically to setUint32 and setUint16
-if (location.hostname!='picrew.me'||!(location.pathname.startsWith('/image_maker/')||location.pathname.startsWith('/secret_image_maker/'))) alert('Not a Picrew image maker!');
+if (location.hostname!='picrew.me'||!(location.pathname.includes('/image_maker/')||location.pathname.includes('/secret_image_maker/'))) alert('Not a Picrew image maker!');
 else void(async downloadCurrentState=>{
 
 const progressBar=document.createElement('progress');
