@@ -80,6 +80,7 @@ if (downloadCurrentState) {
 	progressBar.value=0;
 	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
 		const part=state.config.pList.find(p=>p.lyrs.includes(layer[0]|0));
+		if (!part) continue;
 		const local=localSettings[part.pId];
 		if (state.commonImages[local.itmId]&&state.commonImages[local.itmId][layer[0]]&&state.commonImages[local.itmId][layer[0]][local.cId]) { //skip if nonexistent
 			const oraLayer=stack.createElement('layer');
@@ -101,6 +102,7 @@ if (downloadEntireMaker) {
 	progressBar.value=0;
 	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
 		const part=state.config.pList.find(p=>p.lyrs.includes(layer[0]|0)); // the part for each layer
+		if (!part) continue;
 		const partDir='data/'+layer[1]+'/';
 		addFile(partDir);
 		const partStack=stack.createElement('stack');
