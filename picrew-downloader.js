@@ -79,7 +79,7 @@ if (downloadCurrentState) {
 	progressBar.max=Object.values(localSettings).filter(x=>x.itmId).length; //itmId is 0 if unused?
 	progressBar.value=0;
 	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
-		const part=state.config.pList.find(p=>p.lyrs.includes(layer[0]|0));
+		const part=state.config.pList.find(p=>p.lyrs.includes(+layer[0]));
 		if (!part) continue;
 		const local=localSettings[part.pId];
 		if (state.commonImages[local.itmId]&&state.commonImages[local.itmId][layer[0]]&&state.commonImages[local.itmId][layer[0]][local.cId]) { //skip if nonexistent
@@ -101,7 +101,7 @@ if (downloadEntireMaker) {
 	progressBar.max=0;for (const item of Object.values(state.commonImages)) for (const layer of Object.values(item)) progressBar.max+=Object.keys(layer).length; // total number of images
 	progressBar.value=0;
 	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
-		const part=state.config.pList.find(p=>p.lyrs.includes(layer[0]|0)); // the part for each layer
+		const part=state.config.pList.find(p=>p.lyrs.includes(+layer[0])); // the part for each layer
 		if (!part) continue;
 		const partDir='data/'+layer[1]+'/';
 		addFile(partDir);
