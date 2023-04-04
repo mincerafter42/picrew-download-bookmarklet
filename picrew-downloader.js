@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.4
+/* Picrew downloader bookmarklet version 1.5
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -34,11 +34,11 @@ function addFile(path,data='') { //path is string. data is arraybuffer-like, or 
 	for (const i of [14,18]) localHeader.setInt32(i,data.byteLength,1); //FILESIZE
 	const filename8=utf8ified(path);
 	localHeader.setInt16(22,filename8.length,1);
-	localHeaders.push('PK\u0003\u0004',localHeader,filename8,data);
+	localHeaders.push('PK\x03\x04',localHeader,filename8,data);
 	
 	const centralDirectoryEntry=new DataView(new ArrayBuffer(14));
 	centralDirectoryEntry.setInt32(10,runningLocalHeaderTotal,1);
-	centralDirectory.push('PK\u0001\u0002\u0014\u0000',localHeader,centralDirectoryEntry,filename8);
+	centralDirectory.push('PK\x01\x02\x14\x00',localHeader,centralDirectoryEntry,filename8);
 
 	runningLocalHeaderTotal+=30+filename8.length+(data.byteLength|0);
 	runningCentralDirectoryTotal+=46+filename8.length;
@@ -138,7 +138,7 @@ const centralDirectoryEnd=new DataView(new ArrayBuffer(18));
 for (const i of [4,6]) centralDirectoryEnd.setInt16(i,runningFileCount,1);
 centralDirectoryEnd.setInt32(8,runningCentralDirectoryTotal,1);
 centralDirectoryEnd.setInt32(12,runningLocalHeaderTotal,1);
-centralDirectory.push('PK\u0005\u0006',centralDirectoryEnd);
+centralDirectory.push('PK\x05\x06',centralDirectoryEnd);
 
 // turn it all into a blob and download
 const finished=URL.createObjectURL(new Blob(localHeaders.concat(centralDirectory),{type:'application/zip'})),
