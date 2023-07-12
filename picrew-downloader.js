@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.5
+/* Picrew downloader bookmarklet version 1.5.1
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -27,9 +27,10 @@ let runningLocalHeaderTotal=0, runningCentralDirectoryTotal=0, runningFileCount=
 
 const utf8ified=s=>new TextEncoder().encode(s);
 
-function addFile(path,data='') { //path is string. data is arraybuffer-like, or empty to create a folder instead of a file
+function addFile(path,data) { //path is string. data is arraybuffer-like
 	const localHeader=new DataView(new ArrayBuffer(26)); // it's the local header
-	localHeader.setInt32(0,(data?10:20)+(1<<27),1); // 20 if folder, 10 otherwise. also utf-8 bit
+	//localHeader.setInt32(0,0x800000a,1); // use if filenames have utf-8 characters
+	localHeader.setInt8(0,10); // assumes filenames have only ascii characters
 	localHeader.setInt32(10,crc32(data),1); //CRC32
 	for (const i of [14,18]) localHeader.setInt32(i,data.byteLength,1); //FILESIZE
 	const filename8=utf8ified(path);
@@ -40,14 +41,12 @@ function addFile(path,data='') { //path is string. data is arraybuffer-like, or 
 	centralDirectoryEntry.setInt32(10,runningLocalHeaderTotal,1);
 	centralDirectory.push('PK\x01\x02\x14\x00',localHeader,centralDirectoryEntry,filename8);
 
-	runningLocalHeaderTotal+=30+filename8.length+(data.byteLength|0);
+	runningLocalHeaderTotal+=30+filename8.length+data.byteLength;
 	runningCentralDirectoryTotal+=46+filename8.length;
 	runningFileCount++;
 }
 
 addFile('mimetype',utf8ified('image/openraster'));
-addFile('data/');
-addFile('Thumbnails/');
 addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
 
 // thumbnail and mergedimage.png, taken from previous picrew downloader
@@ -55,6 +54,7 @@ addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
 	await fetch(renderedImage.toDataURL()).then(r=>r.arrayBuffer()).then(x=>addFile('mergedimage.png',x));
 	// going to create a smaller canvas for the required thumbnail
 	const canvasScale = 256/Math.max(state.config.w, state.config.h); // scaling factor of canvas to match required thumbnail size
+	//const canvasScale = Math.min(1,256/Math.max(state.config.w, state.config.h)) // in the event canvasScale>1
 	const thumbCanvas = document.createElement('canvas');
 	const scaledHeight = state.config.h * canvasScale |0, scaledWidth = state.config.w * canvasScale |0;
 	thumbCanvas.width = scaledWidth;
@@ -103,8 +103,6 @@ if (downloadEntireMaker) {
 	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
 		const part=state.config.pList.find(p=>p.lyrs.includes(+layer[0])); // the part for each layer
 		if (!part) continue;
-		const partDir='data/'+layer[1]+'/';
-		addFile(partDir);
 		const partStack=stack.createElement('stack');
 		rootStack.appendChild(partStack);
 		partStack.setAttribute('name',part.pNm);
@@ -113,7 +111,7 @@ if (downloadEntireMaker) {
 				const oraLayer = stack.createElement('layer');
 				partStack.appendChild(oraLayer);
 				const fetchUrl=state.commonImages[item.itmId][layer[0]][colour.cId].url;
-				const imageDir=partDir+item.itmId+colour.cd+fetchUrl.split('/').pop(); // sometimes multiple colours available with the same rgb values
+				const imageDir='data/'+layer[1]+'/'+item.itmId+colour.cd+fetchUrl.split('/').pop(); // sometimes multiple colours available with the same rgb values
 				oraLayer.setAttribute('src',imageDir);
 				const local=localSettings[part.pId]
 				if (local.itmId==item.itmId&&local.cId==colour.cId) { //visible
