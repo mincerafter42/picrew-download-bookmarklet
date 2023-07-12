@@ -136,10 +136,9 @@ const centralDirectoryEnd=new DataView(new ArrayBuffer(18));
 for (const i of [4,6]) centralDirectoryEnd.setInt16(i,runningFileCount,1);
 centralDirectoryEnd.setInt32(8,runningCentralDirectoryTotal,1);
 centralDirectoryEnd.setInt32(12,runningLocalHeaderTotal,1);
-centralDirectory.push('PK\x05\x06',centralDirectoryEnd);
 
 // turn it all into a blob and download
-const finished=URL.createObjectURL(new Blob(localHeaders.concat(centralDirectory),{type:'application/zip'})),
+const finished=URL.createObjectURL(new Blob(localHeaders.concat(centralDirectory,'PK\x05\x06',centralDirectoryEnd),{type:'application/zip'})),
 finishedA=document.createElement('a');
 finishedA.href=finished;
 finishedA.download=state.imageMakerId +'.ora';
