@@ -73,15 +73,15 @@ addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
 const downloadEntireMaker=!downloadCurrentState
 // iterating thru images: the most important part
 //layers→parts (one per layer right?)→items→colours
-const localSettings=JSON.parse(localStorage['picrew.local.data.'+state.imageMakerId]);
+const localSettings = await new Promise(resolve=>window.indexedDB.open('picrew').onsuccess=e=>e.target.result.transaction('image_maker_parts').objectStore('image_maker_parts').getAll(IDBKeyRange.bound([state.imageMakerId],[state.imageMakerId-~0+''])).onsuccess=E=>resolve(E.target.result));
 
 if (downloadCurrentState) {
-	progressBar.max=Object.values(localSettings).filter(x=>x.itmId).length; //itmId is 0 if unused?
+	progressBar.max=localSettings.filter(x=>x.parts_data.itmId).length; //itmId is 0 if unused?
 	progressBar.value=0;
 	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
 		const part=state.config.pList.find(p=>p.lyrs.includes(+layer[0]));
 		if (!part) continue;
-		const local=localSettings[part.pId];
+		const local=localSettings.find(x=>x.parts_id==part.pId).parts_data;
 		if (state.commonImages[local.itmId]&&state.commonImages[local.itmId][layer[0]]&&state.commonImages[local.itmId][layer[0]][local.cId]) { //skip if nonexistent
 			const oraLayer=stack.createElement('layer');
 			const fetchUrl=state.commonImages[local.itmId][layer[0]][local.cId].url;
@@ -113,7 +113,7 @@ if (downloadEntireMaker) {
 				const fetchUrl=state.commonImages[item.itmId][layer[0]][colour.cId].url;
 				const imageDir='data/'+layer[1]+'/'+item.itmId+colour.cd+fetchUrl.split('/').pop(); // sometimes multiple colours available with the same rgb values
 				oraLayer.setAttribute('src',imageDir);
-				const local=localSettings[part.pId]
+				const local=localSettings.find(x=>x.parts_id==part.pId).parts_data
 				if (local.itmId==item.itmId&&local.cId==colour.cId) { //visible
 					oraLayer.setAttribute('x',part.x+local.xCnt);
 					oraLayer.setAttribute('y',part.y+local.yCnt);
