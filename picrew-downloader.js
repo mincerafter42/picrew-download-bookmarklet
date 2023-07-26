@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.6
+/* Picrew downloader bookmarklet version 1.6.1
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -73,7 +73,7 @@ addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
 const downloadEntireMaker=!downloadCurrentState
 // iterating thru images: the most important part
 //layers→parts (one per layer right?)→items→colours
-const localSettings = await new Promise(resolve=>window.indexedDB.open('picrew').onsuccess=e=>e.target.result.transaction('image_maker_parts').objectStore('image_maker_parts').getAll(IDBKeyRange.bound([state.imageMakerId],[state.imageMakerId-~0+''])).onsuccess=E=>resolve(E.target.result));
+const localSettings = await new Promise(resolve=>window.indexedDB.open('picrew').onsuccess=e=>e.target.result.transaction('image_maker_parts').objectStore('image_maker_parts').getAll(IDBKeyRange.bound([state.imageMakerId],[state.imageMakerId,''])).onsuccess=E=>resolve(E.target.result));
 
 if (downloadCurrentState) {
 	progressBar.max=localSettings.filter(x=>x.parts_data.itmId).length; //itmId is 0 if unused?
