@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.5.1
+/* Picrew downloader bookmarklet version 1.6
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
