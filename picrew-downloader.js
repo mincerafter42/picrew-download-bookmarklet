@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.6.1
+/* Picrew downloader bookmarklet version 1.6.2
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -91,7 +91,7 @@ if (downloadCurrentState) {
 			oraLayer.setAttribute('x',local.xCnt+part.x);
 			oraLayer.setAttribute('y',local.yCnt+part.y);
 			rootStack.appendChild(oraLayer);
-			await fetch(fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(saveUrl,x));
+			await fetch(state.picrewData.cdnRoot+fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(saveUrl,x));
 			progressBar.value++;
 		}
 	}
@@ -122,7 +122,7 @@ if (downloadEntireMaker) {
 					oraLayer.setAttribute('x',part.x);
 					oraLayer.setAttribute('y',part.y);
 				}
-				await fetch(fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
+				await fetch(state.picrewData.cdnRoot+fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
 				progressBar.value++;
 			}
 		}
