@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.6.2
+/* Picrew downloader bookmarklet version 1.7.0
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -9,12 +9,15 @@ zip64? nah we're keeping things fittable in two SD cards
 */
 //setInt32 and setInt16, for positive numbers, function identically to setUint32 and setUint16
 if (location.hostname!='picrew.me'||!(location.pathname.includes('/image_maker/')||location.pathname.includes('/secret_image_maker/'))) alert('Not a Picrew image maker!');
-else void(async downloadCurrentState=>{
-
+else {
 const progressBar=document.createElement('progress');
+
+void(async downloadCurrentState=>{
+
 progressBar.style.position='absolute';
 progressBar.style.top=0;
 progressBar.style.width='100%';
+progressBar.style.zIndex=9;
 document.body.appendChild(progressBar);
 
 const crcTable=(()=>{for(var a,o=[],c=0;c<256;c++){a=c;for(let f=0;f<8;f++)a=1&a?3988292384^a>>>1:a>>>1;o[c]=a};return o})(),
@@ -144,7 +147,6 @@ finishedA.href=finished;
 finishedA.download=state.imageMakerId +'.ora';
 finishedA.click();
 URL.revokeObjectURL(finished);
-
-document.body.removeChild(progressBar);
+ // TODO put this outside the async so errors still remove the bar
 })(false) // set to true to download current state; set to false to download entire maker.
-.catch(alert)
+.catch(alert).then(()=>progressBar.remove())}
