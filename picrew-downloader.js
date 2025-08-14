@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.7.0
+/* Picrew downloader bookmarklet version 1.8.0
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -51,6 +51,7 @@ function addFile(path,data) { //path is string. data is arraybuffer-like
 
 addFile('mimetype',utf8ified('image/openraster'));
 addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
+addFile('META-INF/metadata.xml',utf8ified("<?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?><rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'><rdf:Description rdf:about=''><exif:UserComment xmlns:exif='http://ns.adobe.com/exif/1.0/'><rdf:Alt><rdf:li xml:lang='x-default' xml:space='preserve'><![CDATA["+state.imageMakerInfo.description.replace(/]]>/g,']]]]><![CDATA[')+']]></rdf:li></rdf:Alt></exif:UserComment><dc:source xmlns:dc=\'http://purl.org/dc/elements/1.1/\'><![CDATA['+location.href+']]></dc:source></rdf:Description></rdf:RDF><?xpacket end=\'r\'?>'));
 
 // thumbnail and mergedimage.png, taken from previous picrew downloader
 	const renderedImage = document.querySelector('canvas'); // already rendered image (good for thumbnails & such)
@@ -147,6 +148,5 @@ finishedA.href=finished;
 finishedA.download=state.imageMakerId +'.ora';
 finishedA.click();
 URL.revokeObjectURL(finished);
- // TODO put this outside the async so errors still remove the bar
 })(false) // set to true to download current state; set to false to download entire maker.
 .catch(alert).then(()=>progressBar.remove())}
