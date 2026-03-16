@@ -1,4 +1,4 @@
-/* Picrew downloader bookmarklet version 1.8.1
+/* Picrew downloader bookmarklet version 1.9
 you can just paste it in your browser console
 
 https://pkware.cachefly.net/webdocs/APPNOTE/APPNOTE_6.2.0.txt
@@ -23,7 +23,26 @@ document.body.appendChild(progressBar);
 const crcTable=(()=>{for(var a,o=[],c=0;c<256;c++){a=c;for(let f=0;f<8;f++)a=1&a?3988292384^a>>>1:a>>>1;o[c]=a};return o})(),
 	crc32=b=>{for(var r=new Int8Array(b),n=-1,t=0;t<r.length;t++)n=n>>>8^crcTable[255&(n^r[t])];return~n}; //https://stackoverflow.com/questions/18638900/javascript-crc32
 
-const state=window.__NUXT__.state; // it's where basically all the data is stored
+const state=await new Promise(resolve=>{
+	const iframe=document.createElement('iframe');
+	iframe.sandbox="allow-same-origin"
+	iframe.src=location.href;
+	document.body.appendChild(iframe);
+	iframe.contentWindow.addEventListener("DOMContentLoaded",()=>{
+		resolve(JSON.parse(iframe.contentDocument.getElementById('it-astro-state').innerText,(key,value)=>{
+			if (key!="") return value;
+			function deref(map) {
+				if (!map || typeof(map)!='object') return map;
+				const obj = {};
+				if (map[0]=="Map") for (let i=1;i<map.length;i+=2) obj[value[map[i]]]=deref(value[map[i+1]]);
+				else for (const i in map) obj[i]=deref(value[map[i]]);
+				return obj;
+			}
+			return deref(value[0]);
+		})['@inox-tools/request-nanostores']['picrew-image-maker-data']);
+		document.body.removeChild(iframe);
+	});
+});
 
 let localHeaders=[], centralDirectory=[]; // 2 parts of zip file, will be concatenated and Blobified
 let runningLocalHeaderTotal=0, runningCentralDirectoryTotal=0, runningFileCount=0; //gotta keep track of these for zip file
@@ -50,17 +69,16 @@ function addFile(path,data) { //path is string. data is arraybuffer-like
 }
 
 addFile('mimetype',utf8ified('image/openraster'));
-addFile('comment.txt',utf8ified(state.imageMakerInfo.description));
-addFile('META-INF/metadata.xml',utf8ified("<?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?><rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'><rdf:Description rdf:about=''><exif:UserComment xmlns:exif='http://ns.adobe.com/exif/1.0/'><rdf:Alt><rdf:li xml:lang='x-default' xml:space='preserve'><![CDATA["+state.imageMakerInfo.description.replace(/]]>/g,']]]]><![CDATA[>')+']]></rdf:li></rdf:Alt></exif:UserComment><dc:source xmlns:dc=\'http://purl.org/dc/elements/1.1/\'><![CDATA['+location.href+']]></dc:source></rdf:Description></rdf:RDF><?xpacket end=\'r\'?>'));
+addFile('META-INF/metadata.xml',utf8ified("<?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?><rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'><rdf:Description rdf:about=''><exif:UserComment xmlns:exif='http://ns.adobe.com/exif/1.0/'><rdf:Alt><rdf:li xml:lang='x-default' xml:space='preserve'><![CDATA["+state.cf.desc.replace(/]]>/g,']]]]><![CDATA[>')+']]></rdf:li></rdf:Alt></exif:UserComment><dc:source xmlns:dc=\'http://purl.org/dc/elements/1.1/\'><![CDATA['+location.href+']]></dc:source></rdf:Description></rdf:RDF><?xpacket end=\'r\'?>'));
 
 // thumbnail and mergedimage.png, taken from previous picrew downloader
 	const renderedImage = document.querySelector('canvas'); // already rendered image (good for thumbnails & such)
 	await fetch(renderedImage.toDataURL()).then(r=>r.arrayBuffer()).then(x=>addFile('mergedimage.png',x));
 	// going to create a smaller canvas for the required thumbnail
-	const canvasScale = 256/Math.max(state.config.w, state.config.h); // scaling factor of canvas to match required thumbnail size
+	const canvasScale = 256/Math.max(state.cf.w, state.cf.h); // scaling factor of canvas to match required thumbnail size
 	//const canvasScale = Math.min(1,256/Math.max(state.config.w, state.config.h)) // in the event canvasScale>1
 	const thumbCanvas = document.createElement('canvas');
-	const scaledHeight = state.config.h * canvasScale |0, scaledWidth = state.config.w * canvasScale |0;
+	const scaledHeight = state.cf.h * canvasScale |0, scaledWidth = state.cf.w * canvasScale |0;
 	thumbCanvas.width = scaledWidth;
 	thumbCanvas.height = scaledHeight;
 	thumbCanvas.getContext('2d').drawImage(renderedImage,0,0,scaledWidth,scaledHeight);
@@ -68,8 +86,8 @@ addFile('META-INF/metadata.xml',utf8ified("<?xpacket begin='' id='W5M0MpCehiHzre
 // ora layers stack:
 	const stack = document.implementation.createDocument(null,'image'); // stack, which can be manipulated and converted to XML
 	const image = stack.documentElement; // `image` element, root
-	image.setAttribute('w',state.config.w);
-	image.setAttribute('h',state.config.h);
+	image.setAttribute('w',state.cf.w);
+	image.setAttribute('h',state.cf.h);
 	image.setAttribute('version', '0.0.6');
 	const rootStack = stack.createElement('stack');
 	image.appendChild(rootStack);
@@ -77,44 +95,44 @@ addFile('META-INF/metadata.xml',utf8ified("<?xpacket begin='' id='W5M0MpCehiHzre
 const downloadEntireMaker=!downloadCurrentState
 // iterating thru images: the most important part
 //layers→parts (one per layer right?)→items→colours
-const localSettings = await new Promise(resolve=>window.indexedDB.open('picrew').onsuccess=e=>e.target.result.transaction('image_maker_parts').objectStore('image_maker_parts').getAll(IDBKeyRange.bound([state.imageMakerId],[state.imageMakerId,''])).onsuccess=E=>resolve(E.target.result));
+const localSettings = await new Promise(resolve=>window.indexedDB.open('picrew').onsuccess=e=>e.target.result.transaction('image_maker_parts').objectStore('image_maker_parts').getAll(IDBKeyRange.bound([state.info.id],[state.info.id,''])).onsuccess=E=>resolve(E.target.result));
 
 if (downloadCurrentState) {
 	progressBar.max=localSettings.filter(x=>x.parts_data.itmId).length; //itmId is 0 if unused?
 	progressBar.value=0;
-	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
-		const part=state.config.pList.find(p=>p.lyrs.includes(+layer[0]));
+	for (const layer of Object.entries(state.cf.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
+		const part=Object.values(state.cf.pList).find(p=>Object.values(p.lyrs).includes(+layer[0]));
 		if (!part) continue;
 		const local=localSettings.find(x=>x.parts_id==part.pId).parts_data;
-		if (state.commonImages[local.itmId]&&state.commonImages[local.itmId][layer[0]]&&state.commonImages[local.itmId][layer[0]][local.cId]) { //skip if nonexistent
+		if (state.img.lst[local.itmId]&&state.img.lst[local.itmId][layer[0]]&&state.img.lst[local.itmId][layer[0]][local.cId]) { //skip if nonexistent
 			const oraLayer=stack.createElement('layer');
-			const fetchUrl=state.commonImages[local.itmId][layer[0]][local.cId].url;
+			const fetchUrl=state.img.lst[local.itmId][layer[0]][local.cId].url;
 			const saveUrl='data/'+fetchUrl.split('/').pop();
 			oraLayer.setAttribute('src',saveUrl);
 			oraLayer.setAttribute('name',part.pNm);
 			oraLayer.setAttribute('x',local.xCnt+part.x);
 			oraLayer.setAttribute('y',local.yCnt+part.y);
 			rootStack.appendChild(oraLayer);
-			await fetch(state.picrewData.cdnRoot+fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(saveUrl,x));
+			await fetch('https://cdn.picrew.me'+fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(saveUrl,x));
 			progressBar.value++;
 		}
 	}
 }
 
 if (downloadEntireMaker) {
-	progressBar.max=0;for (const item of Object.values(state.commonImages)) for (const layer of Object.values(item)) progressBar.max+=Object.keys(layer).length; // total number of images
+	progressBar.max=0;for (const item of Object.values(state.img.lst)) for (const layer of Object.values(item)) progressBar.max+=Object.keys(layer).length; // total number of images
 	progressBar.value=0;
-	for (const layer of Object.entries(state.config.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
-		const part=state.config.pList.find(p=>p.lyrs.includes(+layer[0])); // the part for each layer
+	for (const layer of Object.entries(state.cf.lyrList).sort((a,b)=>b[1]-a[1])) { // layers in order
+		const part=Object.values(state.cf.pList).find(p=>Object.values(p.lyrs).includes(+layer[0])); // the part for each layer
 		if (!part) continue;
 		const partStack=stack.createElement('stack');
 		rootStack.appendChild(partStack);
 		partStack.setAttribute('name',part.pNm);
-		for (const item of part.items) for (const colour of state.config.cpList[part.cpId]) {
-			if (state.commonImages[item.itmId]&&state.commonImages[item.itmId][layer[0]]&&state.commonImages[item.itmId][layer[0]][colour.cId]) {// skip if nonexistent
+		for (const item of Object.values(part.items)) for (const colour of Object.values(state.cf.cpList[part.cpId])) {
+			if (state.img.lst[item.itmId]&&state.img.lst[item.itmId][layer[0]]&&state.img.lst[item.itmId][layer[0]][colour.cId]) {// skip if nonexistent
 				const oraLayer = stack.createElement('layer');
 				partStack.appendChild(oraLayer);
-				const fetchUrl=state.commonImages[item.itmId][layer[0]][colour.cId].url;
+				const fetchUrl=state.img.lst[item.itmId][layer[0]][colour.cId].url;
 				const imageDir='data/'+layer[1]+'/'+item.itmId+colour.cd+fetchUrl.split('/').pop(); // sometimes multiple colours available with the same rgb values
 				oraLayer.setAttribute('src',imageDir);
 				const local=localSettings.find(x=>x.parts_id==part.pId).parts_data
@@ -126,7 +144,7 @@ if (downloadEntireMaker) {
 					oraLayer.setAttribute('x',part.x);
 					oraLayer.setAttribute('y',part.y);
 				}
-				await fetch(state.picrewData.cdnRoot+fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
+				await fetch('https://cdn.picrew.me'+fetchUrl).then(r=>r.arrayBuffer()).then(x=>addFile(imageDir,x));
 				progressBar.value++;
 			}
 		}
@@ -145,7 +163,7 @@ centralDirectoryEnd.setInt32(12,runningLocalHeaderTotal,1);
 const finished=URL.createObjectURL(new Blob(localHeaders.concat(centralDirectory,'PK\x05\x06',centralDirectoryEnd),{type:'application/zip'})),
 finishedA=document.createElement('a');
 finishedA.href=finished;
-finishedA.download=state.imageMakerId +'.ora';
+finishedA.download=state.info.id +'.ora';
 finishedA.click();
 URL.revokeObjectURL(finished);
 })(false) // set to true to download current state; set to false to download entire maker.
